@@ -22,10 +22,7 @@ namespace CacheAspect.Attributes
 
             #region Public Properties
 
-            public KeyBuilder KeyBuilder
-            {
-                get { return _keyBuilder ?? (_keyBuilder = new KeyBuilder()); }
-            }
+            public KeyBuilder KeyBuilder => _keyBuilder ?? (_keyBuilder = new KeyBuilder());
 
             #endregion
 
@@ -57,10 +54,10 @@ namespace CacheAspect.Attributes
             public override void CompileTimeInitialize(MethodBase method, AspectInfo aspectInfo)
             {
                 KeyBuilder.MethodParameters = method.GetParameters();
-                KeyBuilder.MethodName = string.Format("{0}.{1}", method.DeclaringType.FullName, method.Name);
+                KeyBuilder.MethodName = $"{method.DeclaringType.FullName}.{method.Name}";
             }
 
-            public override sealed void OnExit(MethodExecutionArgs args)
+            public sealed override void OnExit(MethodExecutionArgs args)
             {
                 var key = KeyBuilder.BuildCacheKey(args.Instance, args.Arguments);
                 if (CacheService.Cache.Contains(key))

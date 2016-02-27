@@ -28,19 +28,18 @@ namespace CacheAspect
 
         private static void InitCache()
         {
-            if (Cache == null)
+            if (Cache != null) return;
+
+            try
             {
-                try
-                {
 // ReSharper disable once AssignNullToNotNullAttribute
-                    Cache = (ICache) Activator.CreateInstance(Type.GetType(Configuration.CacheType));
-                }
-                catch
-                {
-                    //if a cache is not configured, fall back on NoCache 
-                    //this happens is useful for test cases
-                    Cache = new NoCache();
-                }
+                Cache = (ICache) Activator.CreateInstance(Type.GetType(Configuration.CacheType));
+            }
+            catch
+            {
+                //if a cache is not configured, fall back on NoCache 
+                //this happens is useful for test cases
+                Cache = new NoCache();
             }
         }
 

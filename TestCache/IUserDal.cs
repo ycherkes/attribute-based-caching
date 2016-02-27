@@ -1,5 +1,4 @@
-﻿using System;
-namespace TestCache
+﻿namespace TestCache
 {
     public interface IUserDal
     {

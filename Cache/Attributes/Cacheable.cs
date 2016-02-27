@@ -23,10 +23,7 @@ namespace CacheAspect.Attributes
 
             #region Public Properties
 
-            public KeyBuilder KeyBuilder
-            {
-                get { return _keyBuilder.Value; }
-            }
+            public KeyBuilder KeyBuilder => _keyBuilder.Value;
 
             #endregion
 
@@ -81,11 +78,11 @@ namespace CacheAspect.Attributes
             public override void CompileTimeInitialize(MethodBase method, AspectInfo aspectInfo)
             {
                 KeyBuilder.MethodParameters = method.GetParameters();
-                KeyBuilder.MethodName = string.Format("{0}.{1}", method.DeclaringType != null ? method.DeclaringType.FullName : string.Empty, method.Name);
+                KeyBuilder.MethodName = $"{(method.DeclaringType != null ? method.DeclaringType.FullName : string.Empty)}.{method.Name}";
             }
 
             // This method is executed before the execution of target methods of this aspect.
-            public override sealed void OnEntry(MethodExecutionArgs args)
+            public sealed override void OnEntry(MethodExecutionArgs args)
             {
                 // Compute the cache key.
                 var cacheKey = KeyBuilder.BuildCacheKey(args.Instance, args.Arguments);
@@ -108,7 +105,7 @@ namespace CacheAspect.Attributes
             }
 
             // This method is executed upon successful completion of target methods of this aspect.
-            public override sealed void OnSuccess(MethodExecutionArgs args)
+            public sealed override void OnSuccess(MethodExecutionArgs args)
             {
                 var cacheKey = (string) args.MethodExecutionTag;
                 CacheService.Cache[cacheKey] = new DateWrapper<object> {Object = args.ReturnValue, Timestamp = DateTime.UtcNow};

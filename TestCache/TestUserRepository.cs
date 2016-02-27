@@ -10,34 +10,33 @@ namespace TestCache
     public class TestUserRepository
     {
 
-        UserRepository target;
-        IUserDal dal;
-        ICache cache;
+        UserRepository _target;
+        IUserDal _dal;
+        ICache _cache;
 
         // Use TestInitialize to run code before running each test 
         [TestInitialize]
         public void SetUp()
         {
-            dal = MockRepository.GenerateStrictMock<IUserDal>();
-            cache = new InProcessMemoryCache();
+            _dal = MockRepository.GenerateStrictMock<IUserDal>();
+            _cache = new InProcessMemoryCache();
 
-            CacheService.Cache = cache;
-            target = new UserRepository();
-            target.Dal = dal;
+            CacheService.Cache = _cache;
+            _target = new UserRepository {Dal = _dal};
         }
 
         [TestMethod]
         public void GetAllUsers_TryRetrievingDataTwice_DalShouldBeHitOnce()
         {
             //Arrange
-            dal.Expect(d => d.GetAllUsers()).Return(GetUsers());
+            _dal.Expect(d => d.GetAllUsers()).Return(GetUsers());
 
             //Act
-            target.GetAllUsers();
-            target.GetAllUsers();
+            _target.GetAllUsers();
+            _target.GetAllUsers();
 
             //Assert
-            dal.VerifyAllExpectations();
+            _dal.VerifyAllExpectations();
             
         }
 
@@ -45,70 +44,59 @@ namespace TestCache
         public void GetUserById_TryRetrievingDataTwice_DalShouldBeHitOnce()
         {
             //Arrange
-            int id = 1;
-            dal.Expect(d => d.GetUserById(id)).Return(GetUsers().First());
+            const int id = 1;
+            _dal.Expect(d => d.GetUserById(id)).Return(GetUsers().First());
 
             //Act
-            target.GetUserById(id);
-            target.GetUserById(id);
+            _target.GetUserById(id);
+            _target.GetUserById(id);
 
             //Assert
-            dal.VerifyAllExpectations();
+            _dal.VerifyAllExpectations();
         }
 
         [TestMethod]
         public void GetUserById_TryRetrievingUsingDifferentIds_DalShouldBeHitTwice()
         {
             //Arrange
-            int id1 = 1;
-            int id2 = 2;
-            dal.Expect(d => d.GetUserById(id1)).Return(GetUsers().First());
-            dal.Expect(d => d.GetUserById(id2)).Return(GetUsers().Last());
+            const int id1 = 1;
+            const int id2 = 2;
+            _dal.Expect(d => d.GetUserById(id1)).Return(GetUsers().First());
+            _dal.Expect(d => d.GetUserById(id2)).Return(GetUsers().Last());
 
             //Act
-            target.GetUserById(id1);
-            target.GetUserById(id2);
+            _target.GetUserById(id1);
+            _target.GetUserById(id2);
 
             //Assert
-            dal.VerifyAllExpectations();
+            _dal.VerifyAllExpectations();
         }
 
         [TestMethod]
         public void GetAllUsers_AddUserAfterCaching_CacheShouldBeInvalidated()
         {
             //Arrange
-            dal.Expect(d => d.GetAllUsers())
+            _dal.Expect(d => d.GetAllUsers())
                 .Return(GetUsers())
                 .Repeat.Twice();                    //Second call expected after cache is invalidated
-            dal.Expect(d => d.AddUser(null)).IgnoreArguments();
+            _dal.Expect(d => d.AddUser(null)).IgnoreArguments();
             
             //Act
-            target.GetAllUsers();
-            target.AddUser(new User{ Id = 1234});   //Should trigger invalidation
-            target.GetAllUsers();
+            _target.GetAllUsers();
+            _target.AddUser(new User{ Id = 1234});   //Should trigger invalidation
+            _target.GetAllUsers();
 
             //Assert
-            dal.VerifyAllExpectations();
+            _dal.VerifyAllExpectations();
         }
-
-        private TestContext testContextInstance;
 
         /// <summary>
         ///Gets or sets the test context which provides
         ///information about and functionality for the current test run.
         ///</summary>
-        public TestContext TestContext
-        {
-            get
-            {
-                return testContextInstance;
-            }
-            set
-            {
-                testContextInstance = value;
-            }
-        }
-        private List<User> GetUsers()
+        public TestContext TestContext { get; set; }
+
+        private static List<User> GetUsers()
         {
             return new List<User>{ 
             new User{ Id = 1},

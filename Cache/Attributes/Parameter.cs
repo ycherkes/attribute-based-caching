@@ -18,7 +18,7 @@ namespace CacheAspect.Attributes
     {
         #region Fields
 
-        private string _parameterValue = string.Empty;
+        private string _parameterValue;
 
         #endregion
 

@@ -18,22 +18,13 @@ namespace CacheAspect.Config
         #region Public Properties
 
         [ConfigurationProperty(TypeAttribute, IsRequired = true, DefaultValue = "CacheAspect.MemoryCache")]
-        public string CacheType
-        {
-            get { return (string) base[TypeAttribute]; }
-        }
+        public string CacheType => (string) base[TypeAttribute];
 
         [ConfigurationProperty(PathAttribute, IsRequired = false, DefaultValue = "")]
-        public string Path
-        {
-            get { return (string) base[PathAttribute]; }
-        }
+        public string Path => (string) base[PathAttribute];
 
         [ConfigurationProperty(TtlAttribute, IsRequired = false, DefaultValue = "01:00:00")]
-        public string TimeToLive
-        {
-            get { return (string) base[TtlAttribute]; }
-        }
+        public string TimeToLive => (string) base[TtlAttribute];
 
         #endregion
     }

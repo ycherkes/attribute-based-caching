@@ -16,15 +16,11 @@ namespace CacheAspect
         {
             get
             {
-                if (treeCache.ContainsKey(key))
-                {
-                    return treeCache[key];
-                }
-                return null;
+                return _treeCache.ContainsKey(key) ? _treeCache[key] : null;
             }
             set
             {
-                treeCache[key] = value;
+                _treeCache[key] = value;
                 SaveCache();
             }
         }
@@ -33,11 +29,11 @@ namespace CacheAspect
 
         #region Static Fields
 
-        private static string datafile;
+        private static string _datafile;
 
-        private static SerializedTree treeCache;
+        private static SerializedTree _treeCache;
 
-        private static string treefile;
+        private static string _treefile;
 
         #endregion
 
@@ -45,8 +41,8 @@ namespace CacheAspect
 
         public BTreeCache()
         {
-            datafile = CacheService.DiskPath + "datafile";
-            treefile = CacheService.DiskPath + "treefile";
+            _datafile = CacheService.DiskPath + "datafile";
+            _treefile = CacheService.DiskPath + "treefile";
             LoadCache();
         }
 
@@ -61,51 +57,47 @@ namespace CacheAspect
 
         public bool Contains(string key)
         {
-            return treeCache.ContainsKey(key);
+            return _treeCache.ContainsKey(key);
         }
 
         public void Delete(string key)
         {
-            treeCache.RemoveKey(key);
+            _treeCache.RemoveKey(key);
             SaveCache();
         }
 
         public void CloseCache()
         {
-            treeCache.Shutdown();
+            _treeCache.Shutdown();
         }
 
         public void LoadCache()
         {
-            if (treeCache == null)
+            if (_treeCache != null) return;
+
+            if (File.Exists(_treefile) && File.Exists(_datafile))
             {
-                if (File.Exists(treefile) && File.Exists(datafile))
-                {
-                    treeCache = new SerializedTree(hBplusTreeBytes.ReOpen(treefile, datafile));
-                }
-                else
-                {
-                    treeCache = new SerializedTree(hBplusTreeBytes.Initialize(treefile, datafile, 500));
-                }
-                treeCache.SetFootPrintLimit(10);
+                _treeCache = new SerializedTree(hBplusTreeBytes.ReOpen(_treefile, _datafile));
             }
+            else
+            {
+                _treeCache = new SerializedTree(hBplusTreeBytes.Initialize(_treefile, _datafile, 500));
+            }
+            _treeCache.SetFootPrintLimit(10);
         }
 
         public void SaveCache()
         {
-            if (treeCache != null)
-            {
-                treeCache.Commit();
-            }
+            _treeCache?.Commit();
         }
 
         public void Clear()
         {
-            var key = treeCache.FirstKey();
+            var key = _treeCache.FirstKey();
             while (!string.IsNullOrWhiteSpace(key))
             {
                 Delete(key);
-                key = treeCache.FirstKey();
+                key = _treeCache.FirstKey();
             }
         }
 

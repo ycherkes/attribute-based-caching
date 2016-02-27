@@ -25,14 +25,8 @@ namespace CacheAspect
             var cacheKeyBuilder = new StringBuilder();
 
             // start building a key based on the method name if a group name not set
-            if (string.IsNullOrWhiteSpace(GroupName))
-            {
-                cacheKeyBuilder.Append(MethodName);
-            }
-            else
-            {
-                cacheKeyBuilder.Append(GroupName);
-            }
+            cacheKeyBuilder.Append(string.IsNullOrWhiteSpace(GroupName) ? MethodName : GroupName);
+
             if (instance != null)
             {
                 cacheKeyBuilder.Append(instance);
@@ -57,6 +51,10 @@ namespace CacheAspect
                         BuildDefaultKey(arguments.GetArgument(i), cacheKeyBuilder);
                     }
                     break;
+                case CacheSettings.IgnoreTTL:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
             return cacheKeyBuilder.ToString();
         }
@@ -97,10 +95,11 @@ namespace CacheAspect
 
         private static void BuildDefaultKey(object argument, StringBuilder cacheKeyBuilder)
         {
-            if (argument != null && typeof (ICollection).IsAssignableFrom(argument.GetType()))
+            var os = argument as ICollection;
+            if (os != null)
             {
                 cacheKeyBuilder.Append("{");
-                foreach (var o in (ICollection) argument)
+                foreach (var o in os)
                 {
                     cacheKeyBuilder.Append(o ?? "Null");
                 }
@@ -114,13 +113,11 @@ namespace CacheAspect
 
         private int GetArgumentIndexByName(string paramName)
         {
-            var paramKeyValue =
-                _parametersNameValueMapper.SingleOrDefault(
-                    arg => string.Compare(arg.Value, paramName, CultureInfo.InvariantCulture, CompareOptions.IgnoreCase) == 0);
+            var paramKeyValue = _parametersNameValueMapper.SingleOrDefault(arg => string.Compare(arg.Value, paramName, CultureInfo.InvariantCulture, CompareOptions.IgnoreCase) == 0);
             return paramKeyValue.Key;
         }
 
-        private void TransformParametersIntoNameValueMapper(ParameterInfo[] methodParameters)
+        private void TransformParametersIntoNameValueMapper(IReadOnlyList<ParameterInfo> methodParameters)
         {
             _parametersNameValueMapper = new Dictionary<int, string>();
             for (var i = 0; i < methodParameters.Count(); i++)
